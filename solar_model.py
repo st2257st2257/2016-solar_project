@@ -2,6 +2,7 @@
 # license: GPLv3
 
 import math
+from solar_objects import *
 gravitational_constant = 6.67408E-11
 time_boost = 86400
 """Гравитационная постоянная Ньютона G"""
@@ -41,10 +42,15 @@ def calculate_force(body, space_objects):
         if body == obj:
             continue  # тело не действует гравитационной силой на само себя!
         r = math.sqrt((body.x - obj.x)**2 + (body.y - obj.y)**2)
+        v = math.sqrt(body.Vx**2 + body.Vy**2)
 
-        """Находим растояние до звезды и записываем его"""
-        if obj.type == "Star":
-            space_objects.R_to_star = r
+        """Находим растояние до звезды и записываем его в массив точек графика r(t)"""
+        if (obj.type == "Star") & (body.type != "Star") & (body.color == "blue"):
+            body.R_to_star = r
+            print(obj.type, body.type, len(body.graphic_r_t.id_lines_array))
+            body.graphic_r_t.dots_array.append(Dot(body.graphic_r_t.max_x+1, r / 1000000))
+            body.graphic_v_t.dots_array.append(Dot(body.graphic_r_t.max_x + 1, v / 1000))
+            body.graphic_v_r.dots_array.append(Dot(r / 1000000000, v / 1000))
 
         """В соответствии с углом считаем силу"""
         angle = update_an(body, obj)

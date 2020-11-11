@@ -1,5 +1,6 @@
 # coding: utf-8
 # license: GPLv3
+# from solar_objects import Dot
 
 """Модуль визуализации.
 Нигде, кроме этого модуля, не используются экранные координаты объектов.
@@ -115,6 +116,11 @@ def update_object_position(space, body):
     else:
         space.coords(body.image, x - r, y - r, x + r, y + r)
 
+    if (body.type == "Planet") & (body.color == "blue"):
+        update_graphic(space, body.graphic_r_t)
+        update_graphic(space, body.graphic_v_t)
+        update_graphic(space, body.graphic_v_r)
+
 
 def create_lines(space, graphic):
     """Удаляем линии с холста и создаём новые.
@@ -137,10 +143,10 @@ def create_lines(space, graphic):
 
     for i, dot in enumerate(graphic.dots_array[:-1]):
         graphic.id_lines_array.append(space.create_line(
-            x_bias + (dot.x - min_x) * (max_x - min_x) / graphic.width * (100 / graphic.T)**2,                      # x1
-            y_bias + graphic.height - (dot.y - min_y) * graphic.height / (max_y - min_y),                           # y1
-            x_bias + (graphic.dots_array[i+1].x - min_x) * (max_x - min_x) / graphic.width * (100 / graphic.T)**2,  # x2
-            y_bias + graphic.height - (graphic.dots_array[i+1].y - min_y) * graphic.height / (max_y - min_y),       # y2
+            x_bias + (dot.x - min_x) * graphic.width / (max_x - min_x),                      # x1
+            y_bias + graphic.height - (dot.y - min_y) * graphic.height / (0.1 + max_y - min_y),                     # y1
+            x_bias + (graphic.dots_array[i+1].x - min_x) * graphic.width / (max_x - min_x),  # x2
+            y_bias + graphic.height - (graphic.dots_array[i+1].y - min_y) * graphic.height / (0.1 + max_y - min_y),  # y
             fill=graphic.color
         ))
 

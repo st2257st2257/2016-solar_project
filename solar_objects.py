@@ -15,7 +15,7 @@ class Dot:
 
 
 class Graphic:
-    def __init__(self, formula="(x+x0)*3", x0=sin(tan(cos(1))),
+    def __init__(self, formula="0", x0=sin(tan(cos(1))),
                  x_bias=100, y_bias=100,
                  t=100,
                  color="white",
@@ -91,25 +91,40 @@ class Graphic:
         Первый нужен дл я отображения графика по формуле, второй для отображения графика
         из массива значений
         """
-        self.x0 += dx
-        x0 = self.x0
-        self.dots_array = []
 
-        counter = 0
-        for x in range(self.T):
-            try:
-                self.dots_array.append(Dot(x+x0, eval(self.formula)))
-                counter += 1
-            except 1:
-                print("Error: division by zero")
+        if self.show_type == "time":
+            self.x0 += dx
+            x0 = self.x0
+            self.dots_array = []
 
-        arr_y = sorted(self.dots_array, key=lambda dot: dot.y)
+            counter = 0
+            for x in range(self.T):
+                try:
+                    self.dots_array.append(Dot(x+x0, eval(self.formula)))
+                    counter += 1
+                except 1:
+                    print("Error: division by zero")
 
-        self.max_y = arr_y[len(arr_y) - 1].y
-        self.min_y = arr_y[0].y
+            arr_y = sorted(self.dots_array, key=lambda dot: dot.y)
 
-        self.max_x = self.x0 + counter
-        self.min_x = self.x0
+            self.max_y = arr_y[len(arr_y) - 1].y
+            self.min_y = arr_y[0].y
+
+            self.max_x = self.x0 + counter
+            self.min_x = self.x0
+        elif self.show_type == "arr":
+            self.dots_array = self.dots_array[max(0, len(self.dots_array) - self.T)::]
+
+            arr_x = sorted(self.dots_array, key=lambda dot: dot.x)
+            arr_y = sorted(self.dots_array, key=lambda dot: dot.y)
+
+            self.max_y = arr_y[len(arr_y) - 1].y
+            self.min_y = arr_y[0].y
+
+            self.max_x = arr_x[len(arr_x) - 1].x
+            self.min_x = arr_x[0].x
+
+            self.x0 = self.min_x
 
     def __del__(self):
         self.dots_array = []
@@ -153,6 +168,25 @@ class Star:
 
     image = None
     """Изображение звезды"""
+
+    graphic_v_t = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: v(t)",
+                          x_bias=50, y_bias=250)
+    """График для зависимости модуля скорости от времени"""
+
+    graphic_r_t = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: r(t)",
+                          x_bias=50, y_bias=400)
+    """График для зависимости радиуса от времени"""
+
+    graphic_v_r = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: v(r)",
+                          x_bias=50, y_bias=550)
+    """График для зависимости модуля скорости от радиуса"""
+
     def __init__(self, name="Star", m=1, x=100, y=100, vx=0, vy=0, fx=0, fy=0, r=1,
                  color="red", image=None):
         """Делаем функцию, которя записывает принятые параметры в наши переменные"""
@@ -211,6 +245,24 @@ class Planet:
     image = None
     """Изображение планеты"""
 
+    graphic_v_t = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: v(t)",
+                          x_bias=50, y_bias=250)
+    """График для зависимости модуля скорости от времени"""
+
+    graphic_r_t = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: r(t)",
+                          x_bias=50, y_bias=400)
+    """График для зависимости радиуса от времени"""
+
+    graphic_v_r = Graphic(show_type="arr",
+                          color="white",
+                          description="GRAPH: v(r)",
+                          x_bias=50, y_bias=550)
+    """График для зависимости модуля скорости от радиуса"""
+
     def __init__(self, name="Planet", m=1, x=100, y=100, vx=0, vy=0, fx=0, fy=0, r=1,
                  color="blue", image=None):
         """Делаем функцию, которя записывает принятые параметры в наши переменные"""
@@ -225,3 +277,13 @@ class Planet:
         self.color = color
         self.m = m
         self.image = image
+
+    def __add__(self, dot, g_type="v_t"):
+        if g_type == "v_t":
+            self.graphic_v_t.dots_array.append(dot)
+        elif g_type == "v_r":
+            self.graphic_v_r.dots_array.append(dot)
+        elif g_type == "r_t":
+            self.graphic_r_t.dots_array.append(dot)
+            self.graphic_r_t.update()
+        print("New dot added to" + g_type)
