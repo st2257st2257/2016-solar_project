@@ -54,7 +54,7 @@ def scale_y(y):
     **y** — y-координата модели.
     """
 
-    return y  # FIXME: not done yet
+    return -int(y*scale_factor) + window_height//2  # FIXME: not done yet
 
 
 def create_star_image(space, star):
@@ -80,7 +80,10 @@ def create_planet_image(space, planet):
     **space** — холст для рисования.
     **planet** — объект планеты.
     """
-    pass  # FIXME: сделать как у звезды
+    x = scale_x(planet.x)
+    y = scale_y(planet.y)
+    r = planet.R
+    planet.image = space.create_oval([x - r, y - r], [x + r, y + r], fill=planet.color)
 
 
 def update_system_name(space, system_name):
@@ -109,7 +112,105 @@ def update_object_position(space, body):
     if x + r < 0 or x - r > window_width or y + r < 0 or y - r > window_height:
         space.coords(body.image, window_width + r, window_height + r,
                      window_width + 2*r, window_height + 2*r)  # положить за пределы окна
-    space.coords(body.image, x - r, y - r, x + r, y + r)
+    else:
+        space.coords(body.image, x - r, y - r, x + r, y + r)
+
+
+def create_lines(space, graphic):
+    """Удаляем линии с холста и создаём новые.
+    Отображаем побочные элементы графика
+    """
+    min_x = graphic.min_x
+    max_x = graphic.max_x
+    min_y = graphic.min_y
+    max_y = graphic.max_y
+    x_bias = graphic.x_bias
+    y_bias = graphic.y_bias
+
+    for i in range(len(graphic.id_lines_array)):
+        space.delete(graphic.id_lines_array[i])
+    for i in range(len(graphic.border_array)):
+        space.delete(graphic.border_array[i])
+
+    graphic.id_lines_array = []
+    graphic.border_array = []
+
+    for i, dot in enumerate(graphic.dots_array[:-1]):
+        graphic.id_lines_array.append(space.create_line(
+            x_bias + (dot.x - min_x) * (max_x - min_x) / graphic.width * (100 / graphic.T)**2,                      # x1
+            y_bias + graphic.height - (dot.y - min_y) * graphic.height / (max_y - min_y),                           # y1
+            x_bias + (graphic.dots_array[i+1].x - min_x) * (max_x - min_x) / graphic.width * (100 / graphic.T)**2,  # x2
+            y_bias + graphic.height - (graphic.dots_array[i+1].y - min_y) * graphic.height / (max_y - min_y),       # y2
+            fill=graphic.color
+        ))
+
+    """Устанавливаем граныцы графика"""
+    """Верхняя линия"""
+    graphic.border_array.append(space.create_line(
+            x_bias,
+            y_bias,
+            x_bias + graphic.width,
+            y_bias,
+            fill="white"))
+
+    """Правая линия"""
+    graphic.border_array.append(space.create_line(
+            x_bias + graphic.width,
+            y_bias,
+            x_bias + graphic.width,
+            y_bias + graphic.height,
+            fill="white"))
+
+    """Нижняя линия"""
+    graphic.border_array.append(space.create_line(
+            x_bias + graphic.width,
+            y_bias + graphic.height,
+            x_bias,
+            y_bias + graphic.height,
+            fill="white"))
+
+    """Левая линия"""
+    graphic.border_array.append(space.create_line(
+            x_bias,
+            y_bias + graphic.height,
+            x_bias,
+            y_bias,
+            fill="white"))
+
+    """Рисуем оси координат для более удобного отображения"""
+    graphic.border_array.append(space.create_line(
+            x_bias + graphic.width / 2,
+            y_bias,
+            x_bias + graphic.width / 2,
+            y_bias + graphic.height,
+            fill="white"))
+
+    graphic.border_array.append(space.create_line(
+            x_bias,
+            y_bias + graphic.height / 2,
+            x_bias + graphic.width,
+            y_bias + graphic.height / 2,
+            fill="white"))
+
+    """Выводим описание грфика"""
+    graphic.border_array.append(space.create_text(
+        x_bias + 6 + len(graphic.description)*2,
+        y_bias + graphic.height + 8,
+        text=graphic.description,
+        font="Verdana 10",
+        fill=graphic.color
+    ))
+
+
+def update_graphic(space, graphic):
+    """Обновляем отображенный график:
+    Удалякем с холста старые линии и дорисавываем новые
+    """
+    graphic.update(1)
+    for dot in graphic.id_lines_array:
+        space.delete(dot)
+
+    create_lines(space, graphic)
 
 
 if __name__ == "__main__":

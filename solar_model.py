@@ -1,8 +1,29 @@
 # coding: utf-8
 # license: GPLv3
 
+import math
 gravitational_constant = 6.67408E-11
+time_boost = 86400
 """Гравитационная постоянная Ньютона G"""
+
+
+def update_an(object_class, space_object):
+    pi = 3.14
+    an = 0
+
+    """Рассматриваем все случаи взаимного расположения тел и считаем радиус-вектор 
+    одного относительно другого
+    """
+    if ((space_object.x - object_class.x) > 0) & ((space_object.y - object_class.y) > 0):
+        an = abs(math.atan((space_object.y - object_class.y) / (space_object.x - object_class.x)))
+    elif ((space_object.x - object_class.x) < 0) & ((space_object.y - object_class.y) > 0):
+        an = pi - abs(math.atan((space_object.y - object_class.y) / (space_object.x - object_class.x)))
+    elif ((space_object.x - object_class.x) < 0) & ((space_object.y - object_class.y) < 0):
+        an = -pi + abs(math.atan((space_object.y - object_class.y) / (space_object.x - object_class.x)))
+    elif ((space_object.x - object_class.x) > 0) & ((space_object.y - object_class.y) < 0):
+        an = -abs(math.atan((space_object.y - object_class.y) / (space_object.x - object_class.x)))
+    an *= -1
+    return an
 
 
 def calculate_force(body, space_objects):
@@ -14,13 +35,21 @@ def calculate_force(body, space_objects):
     **space_objects** — список объектов, которые воздействуют на тело.
     """
 
-    body.Fx = body.Fy = 0
+    body.Fx = 0
+    body.Fy = 0
     for obj in space_objects:
         if body == obj:
             continue  # тело не действует гравитационной силой на само себя!
-        r = ((body.x - obj.x)**2 + (body.y - obj.y)**2)**0.5
-        body.Fx += 1  # FIXME: нужно вывести формулу...
-        body.Fy += 2  # FIXME: нужно вывести формулу...
+        r = math.sqrt((body.x - obj.x)**2 + (body.y - obj.y)**2)
+
+        """Находим растояние до звезды и записываем его"""
+        if obj.type == "Star":
+            space_objects.R_to_star = r
+
+        """В соответствии с углом считаем силу"""
+        angle = update_an(body, obj)
+        body.Fx += abs(gravitational_constant * body.m * obj.m/(r**2)) * math.cos(angle)
+        body.Fy -= abs(gravitational_constant * body.m * obj.m/(r**2)) * math.sin(angle)
 
 
 def move_space_object(body, dt):
@@ -30,11 +59,17 @@ def move_space_object(body, dt):
 
     **body** — тело, которое нужно переместить.
     """
+    dt *= 1
 
-    ax = body.Fx/body.m
-    body.x += 42  # FIXME: не понимаю как менять...
-    body.Vx += ax*dt
-    # FIXME: not done recalculation of y coordinate!
+    """Из второго закона Ньютона и закона движения находим новые параметры объекта"""
+    ax = body.Fx / body.m
+    ay = body.Fy / body.m
+
+    body.Vx += ax * (dt * time_boost)
+    body.Vy += ay * (dt * time_boost)
+
+    body.x += body.Vx * (dt * time_boost)
+    body.y += body.Vy * (dt * time_boost)
 
 
 def recalculate_space_objects_positions(space_objects, dt):

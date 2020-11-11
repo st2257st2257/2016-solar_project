@@ -6,9 +6,12 @@ from tkinter.filedialog import *
 from solar_vis import *
 from solar_model import *
 from solar_input import *
+from solar_objects import *
 
 perform_execution = False
 """Флаг цикличности выполнения расчёта"""
+
+time_boost = 86400
 
 physical_time = 0
 """Физическое время от начала расчёта.
@@ -26,6 +29,20 @@ space_objects = []
 """Список космических объектов."""
 
 
+"""Создаём графики функций: за аргумент обязательно брать (х+х0)"""
+graph1 = Graphic("tan((x+x0)/10)", x0=0, x_bias=50,  y_bias=50, t=300, color="blue", description="y=tan(x)")
+graph2 = Graphic("sin((x+x0)/10)", x0=0, x_bias=160, y_bias=50, t=50, color="red", description="y=sin(x)")
+graph3 = Graphic("(x+x0)**3",    x0=-50, x_bias=270, y_bias=50, description="y=x^3")
+graph4 = Graphic("sin((x+x0)/10) + (x+x0)/10", x0=0, x_bias=380, y_bias=50, t=50, color="yellow",
+                 description="y=sin(x)+x/3")
+graph5 = Graphic("sin((x+x0)/10) - sin((x+x0)/5) + cos((x+x0)/80+5) ", x0=0, x_bias=490, y_bias=50, t=50,
+                 color="green",
+                 description="y=sin(x)/10) - sin(x/5) + 2*cos(x/80)+5")
+
+
+Graphics = [graph1, graph2, graph3, graph4, graph5]
+
+
 def execution():
     """Функция исполнения -- выполняется циклически, вызывая обработку всех небесных тел,
     а также обновляя их положение на экране.
@@ -38,7 +55,11 @@ def execution():
     for body in space_objects:
         update_object_position(space, body)
     physical_time += time_step.get()
-    displayed_time.set("%.1f" % physical_time + " seconds gone")
+    displayed_time.set("%.1f" % physical_time + " days gone")
+
+    """Вызываем функцию сдвижения графиков"""
+    for g in Graphics:
+        update_graphic(space, g)
 
     if perform_execution:
         space.after(101 - int(time_speed.get()), execution)
@@ -79,17 +100,20 @@ def open_file_dialog():
     for obj in space_objects:
         space.delete(obj.image)  # удаление старых изображений планет
     in_filename = askopenfilename(filetypes=(("Text file", ".txt"),))
+
     space_objects = read_space_objects_data_from_file(in_filename)
     max_distance = max([max(abs(obj.x), abs(obj.y)) for obj in space_objects])
     calculate_scale_factor(max_distance)
 
     for obj in space_objects:
-        if obj.type == 'star':
+        print(obj.type)
+        if (obj.type == 'star') | (obj.type == 'Star'):
             create_star_image(space, obj)
-        elif obj.type == 'planet':
+        elif (obj.type == 'planet') | (obj.type == "Planet"):
             create_planet_image(space, obj)
         else:
-            raise AssertionError()
+            print(obj.type)
+            pass
 
 
 def save_file_dialog():
@@ -145,8 +169,12 @@ def main():
     time_label = tkinter.Label(frame, textvariable=displayed_time, width=30)
     time_label.pack(side=tkinter.RIGHT)
 
-    root.mainloop()
-    print('Modelling finished!')
+    try:
+        root.mainloop()
+        print('Modelling finished!')
+    except 1:
+        pass
+
 
 if __name__ == "__main__":
     main()
