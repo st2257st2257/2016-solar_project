@@ -116,7 +116,7 @@ def update_object_position(space, body):
     else:
         space.coords(body.image, x - r, y - r, x + r, y + r)
 
-    if (body.type == "Planet") & (body.color == "blue"):
+    if (body.type == "Planet") & (body.color == "green"):
         update_graphic(space, body.graphic_r_t)
         update_graphic(space, body.graphic_v_t)
         update_graphic(space, body.graphic_v_r)
@@ -220,4 +220,4 @@ def update_graphic(space, graphic):
 
 
 if __name__ == "__main__":
-    print("This module is not for direct call!")
+    print("This module is not for  direct call!")

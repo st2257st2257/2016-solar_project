@@ -45,7 +45,7 @@ def calculate_force(body, space_objects):
         v = math.sqrt(body.Vx**2 + body.Vy**2)
 
         """Находим растояние до звезды и записываем его в массив точек графика r(t)"""
-        if (obj.type == "Star") & (body.type != "Star") & (body.color == "blue"):
+        if (obj.type == "Star") & (body.type != "Star") & (body.color == "green"):
             body.R_to_star = r
             print(obj.type, body.type, len(body.graphic_r_t.id_lines_array))
             body.graphic_r_t.dots_array.append(Dot(body.graphic_r_t.max_x+1, r / 1000000))
